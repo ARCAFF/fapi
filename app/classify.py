@@ -51,14 +51,14 @@ def classify(time: datetime, hgs_latitude: float, hgs_longitude: float):
     Classification result
 
     """
-    srs_file, time = download_srs(time)
+    srs_file = download_srs(time)
 
     srs_path = Path(srs_file[0])
     if srs_path.exists():
         hgs_latitude = hgs_latitude << u.deg
         hgs_longitude = hgs_longitude << u.deg
         result = {
-            'time': time.datetime,
+            'time': time,
             'hale_class': 'QS',
             'mcintosh_class': 'QS',
             'hgs_latitude': hgs_latitude.to_value(u.deg),
@@ -73,7 +73,7 @@ def classify(time: datetime, hgs_latitude: float, hgs_longitude: float):
             min_distance_index = np.argmin(distance)
             if distance[min_distance_index] <= 10 * u.deg:  # Arbitrary distance threshold
                 result = {
-                    'time': time.datetime,
+                    'time': time,
                     'hale_class': ars[min_distance_index]['Mag Type'],
                     'mcintosh_class': ars[min_distance_index]['Z'],
                     'hgs_latitude': hgs_latitude.to_value(u.deg),
