@@ -1,4 +1,7 @@
-from fastapi import FastAPI
+import time
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import router
 
@@ -42,4 +45,21 @@ app = FastAPI(
     },
     openapi_tags=tags_metadata
 )
+
 app.include_router(router, prefix='')
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins='*',
+    allow_credentials=True,
+    allow_methods=["get", "post", "options"],
+    allow_headers=["*"],
+)
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    return response

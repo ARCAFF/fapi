@@ -2,6 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
+from app.classify import classify, detect_ars
 from app.schemas import *
 
 router = APIRouter()
@@ -12,22 +13,20 @@ async def classify_cutout(classification_request: ARCutoutClassificationInput = 
     r"""
     Classify a cutout generated from a magnetogram at the given date and location as URL parameters.
     """
-    classification_result = ARCutoutClassificationResult(time=classification_request.time,
-                                                         hgs_latitude=classification_request.hgs_latitude,
-                                                         hgs_longitude=classification_request.hgs_longitude,
-                                                         hale_class='alpha',
-                                                         mcintosh_class='Fck')
+    classification = classify(time=classification_request.time, hgs_latitude=classification_request.hgs_latitude,
+                              hgs_longitude=classification_request.hgs_longitude)
+    classification_result = ARCutoutClassificationResult.model_validate(classification)
     return classification_result
 
 
 @router.post("/arcnet/classify_cutout/", tags=['AR Cutout Classification'])
-async def classify_cutout(req: ARCutoutClassificationInput) -> ARCutoutClassificationResult:
+async def classify_cutout(classification_request: ARCutoutClassificationInput) -> ARCutoutClassificationResult:
     r"""
     Classify an AR cutout generated from a magnetogram at the given date and location as json data.
     """
-    classification_result = ARCutoutClassificationResult(time=req.time, hgs_latitude=req.hgs_latitude,
-                                                          hgs_longitude=req.hgs_longitude, hale_class='alpha',
-                                                          mcintosh_class='Fck')
+    classification = classify(time=classification_request.time, hgs_latitude=classification_request.hgs_latitude,
+                              hgs_longitude=classification_request.hgs_longitude)
+    classification_result = ARCutoutClassificationResult.model_validate(classification)
     return classification_result
 
 
@@ -36,10 +35,9 @@ async def full_disk_detection(detection_request: ARDetectionInput = Depends()) -
     r"""
     Detect and classify all ARs in a magnetogram at the given date as a URL parameter.
     """
-    detection_result = ARDetection.parse_obj({"bbox": {"bottom_left": {"latitude": -70, "longitude": 10},
-                                             "top_right": {"latitude": -70, "longitude": 10}},
-                                    "hale_class": "alpha-beta", "mcintosh_class": "Fck"})
-    return [detection_result]
+    detections = detect_ars(detection_request.time)
+    detection_result = [ARDetection.model_validate(d) for d in detections]
+    return detection_result
 
 
 @router.post("/arcnet/full_disk_detection", tags=['Full disk AR Detection'])
@@ -47,7 +45,6 @@ async def full_disk_detection(detection_request: ARDetectionInput) -> List[ARDet
     r"""
     Detect and classify all ARs in a magnetogram at the given date as  json data.
     """
-    detection_result = ARDetection.parse_obj({"bbox": {"bottom_left": {"latitude": -70, "longitude": 10},
-                                             "top_right": {"latitude": -70, "longitude": 10}},
-                                    "hale_class": "alpha-beta", "mcintosh_class": "Fck"})
-    return [detection_result]
+    detections = detect_ars(detection_request.time)
+    detection_result = [ARDetection.model_validate(d) for d in detections]
+    return detection_result

@@ -25,18 +25,25 @@ class ARDetectionInput(BaseModel):
 
 class HeliographicStonyhurstCoordinate(BaseModel):
     r"""
-
+    Heliographic Stonyhurst (HGS) Coordinate
     """
     latitude: float = Field(title="Heliographic Latitude", ge=-180, le=180, example=-70)
     longitude: float = Field(title='Heliographic Longitude', ge=-90, le=90, example=10)
 
 
 class BoundingBox(BaseModel):
+    r"""
+    Bounding Box
+    """
     bottom_left: HeliographicStonyhurstCoordinate
     top_right: HeliographicStonyhurstCoordinate
 
 
 class ARDetection(BaseModel):
+    r"""
+    Active Region Detection
+    """
+    time: datetime = Field(title='Date time', ge=datetime(2011, 1, 1), le=datetime.now())
     bbox: BoundingBox
     hale_class: str = Field(title='Hale Classification', example='alpha-beta')
     mcintosh_class: str = Field(title='McIntosh Classification', example='Fck')
