@@ -110,7 +110,6 @@ def detect_ars(time: datetime):
         return detections
 
 
-
 class SRSNotFoundError(Exception):
     r"""No SRS file found"""
     pass
